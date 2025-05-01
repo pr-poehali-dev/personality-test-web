@@ -22,6 +22,7 @@ const Results = () => {
   const [personality, setPersonality] = useState<string>("");
 
   // Анализ ответов и вычисление результатов
+
   useEffect(() => {
     const answers = location.state?.answers;
     
@@ -30,8 +31,12 @@ const Results = () => {
       return;
     }
 
-    // Расчет баллов по категориям
-    const calculateScores = () => {
+    // Импортируем вопросы из отдельного модуля
+    import("@/data/questions").then(({ questions }) => {
+      setResults(calculateScores(questions, answers));
+    });
+  }, [location.state, navigate]);
+
       // Инициализация начальных баллов
       const scores = {
         personality: 0,
