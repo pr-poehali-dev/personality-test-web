@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 
@@ -10,22 +11,22 @@ interface NavigationButtonsProps {
   isLastQuestion: boolean;
 }
 
-const NavigationButtons = ({
+const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onPrevious,
   onNext,
   isPreviousDisabled,
   isNextDisabled,
   isLastQuestion
-}: NavigationButtonsProps) => {
+}) => {
   return (
-    <div className="flex justify-between pt-2">
+    <div className="flex w-full justify-between">
       <Button
-        variant="outline"
         onClick={onPrevious}
         disabled={isPreviousDisabled}
-        className="text-purple-700 border-purple-300"
+        variant="outline"
+        className="border-purple-200 text-purple-700"
       >
-        <Icon name="ChevronLeft" size={18} />
+        <Icon name="ChevronLeft" size={18} className="mr-1" />
         Назад
       </Button>
       
@@ -34,11 +35,16 @@ const NavigationButtons = ({
         disabled={isNextDisabled}
         className="bg-purple-600 hover:bg-purple-700 text-white"
       >
-        {!isLastQuestion ? "Далее" : "Завершить тест"}
-        {!isLastQuestion ? (
-          <Icon name="ChevronRight" size={18} />
+        {isLastQuestion ? (
+          <>
+            Завершить
+            <Icon name="CheckCircle" size={18} className="ml-1" />
+          </>
         ) : (
-          <Icon name="CheckCircle" size={18} />
+          <>
+            Далее
+            <Icon name="ChevronRight" size={18} className="ml-1" />
+          </>
         )}
       </Button>
     </div>

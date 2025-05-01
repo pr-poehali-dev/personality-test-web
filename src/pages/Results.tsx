@@ -1,11 +1,12 @@
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Icon from "@/components/ui/icon";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Question } from "@/types/test";
 
 interface ResultCategory {
   name: string;
@@ -15,12 +16,11 @@ interface ResultCategory {
   color: string;
 }
 
-const Results = () => {
+const Results: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [results, setResults] = useState<ResultCategory[]>([]);
   const [personality, setPersonality] = useState<string>("");
-
 
   useEffect(() => {
     const answers = location.state?.answers;
@@ -32,11 +32,12 @@ const Results = () => {
 
     // Импортируем вопросы из отдельного модуля
     import("@/data/questions").then(({ questions }) => {
-      setResults(calculateScores(questions, answers));
+      const calculatedResults = calculateScores(questions, answers);
+      setResults(calculatedResults);
     });
   }, [location.state, navigate]);
 
-  const calculateScores = (questions: any[], answers: Record<number, string>) => {
+  const calculateScores = (questions: Question[], answers: Record<number, string>) => {
     // Инициализация начальных баллов
     const scores = {
       personality: 0,
@@ -139,9 +140,15 @@ const Results = () => {
     ];
   };
 
-
   if (results.length === 0) {
-    return null; // или показать загрузку
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Icon name="Loader2" size={36} className="animate-spin mx-auto text-purple-600" />
+          <p className="mt-4 text-gray-600">Анализируем результаты...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -201,7 +208,7 @@ const Results = () => {
               variant="outline"
               className="mr-3 border-purple-300 text-purple-700"
             >
-              <Icon name="Home" size={18} />
+              <Icon name="Home" size={18} className="mr-1" />
               На главную
             </Button>
             <Button 
@@ -209,7 +216,7 @@ const Results = () => {
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               Пройти тест снова
-              <Icon name="RefreshCw" size={18} />
+              <Icon name="RefreshCw" size={18} className="ml-1" />
             </Button>
           </CardFooter>
         </Card>
@@ -217,119 +224,5 @@ const Results = () => {
     </div>
   );
 };
-
-// Переиспользуем массив вопросов
-const questions = [
-  {
-    id: 1,
-    text: "В компании незнакомых людей я обычно...",
-    options: [
-      { value: "a", text: "Быстро нахожу общий язык и включаюсь в беседу" },
-      { value: "b", text: "Присматриваюсь и постепенно вливаюсь в компанию" },
-      { value: "c", text: "Предпочитаю держаться в стороне и наблюдать" },
-      { value: "d", text: "Чувствую неловкость и стараюсь покинуть компанию" }
-    ],
-    category: "personality"
-  },
-  {
-    id: 2,
-    text: "Когда я сталкиваюсь с неудачей, я обычно...",
-    options: [
-      { value: "a", text: "Быстро восстанавливаюсь и двигаюсь дальше" },
-      { value: "b", text: "Анализирую причины и делаю выводы" },
-      { value: "c", text: "Расстраиваюсь, но стараюсь не показывать это" },
-      { value: "d", text: "Долго переживаю и теряю мотивацию" }
-    ],
-    category: "confidence"
-  },
-  {
-    id: 3,
-    text: "Если кто-то нарушает мои планы, я...",
-    options: [
-      { value: "a", text: "Спокойно адаптируюсь к новой ситуации" },
-      { value: "b", text: "Испытываю раздражение, но сдерживаю его" },
-      { value: "c", text: "Открыто выражаю своё недовольство" },
-      { value: "d", text: "Погружаюсь в плохое настроение надолго" }
-    ],
-    category: "irritability"
-  },
-  {
-    id: 4,
-    text: "Перед важным событием я обычно...",
-    options: [
-      { value: "a", text: "Сохраняю спокойствие и уверенность" },
-      { value: "b", text: "Чувствую легкое волнение, но справляюсь с ним" },
-      { value: "c", text: "Много волнуюсь и продумываю все варианты" },
-      { value: "d", text: "Испытываю сильную тревогу, плохо сплю" }
-    ],
-    category: "anxiety"
-  },
-  {
-    id: 5,
-    text: "Мой темп речи и движений обычно...",
-    options: [
-      { value: "a", text: "Очень быстрый и энергичный" },
-      { value: "b", text: "Умеренный и гибкий" },
-      { value: "c", text: "Неторопливый и размеренный" },
-      { value: "d", text: "Медленный и спокойный" }
-    ],
-    category: "temperament"
-  },
-  {
-    id: 6,
-    text: "В стрессовой ситуации я обычно...",
-    options: [
-      { value: "a", text: "Действую быстро и решительно" },
-      { value: "b", text: "Сохраняю спокойствие и методично решаю проблему" },
-      { value: "c", text: "Нуждаюсь в поддержке, чтобы справиться" },
-      { value: "d", text: "Чувствую себя подавленным и растерянным" }
-    ],
-    category: "confidence"
-  },
-  {
-    id: 7,
-    text: "Мне проще всего работать...",
-    options: [
-      { value: "a", text: "В команде, с активным взаимодействием" },
-      { value: "b", text: "Самостоятельно, но периодически обсуждая результаты" },
-      { value: "c", text: "В тихой обстановке, без отвлечений" },
-      { value: "d", text: "В одиночестве, полностью погрузившись в задачу" }
-    ],
-    category: "personality"
-  },
-  {
-    id: 8,
-    text: "Если кто-то ведет себя некорректно, я...",
-    options: [
-      { value: "a", text: "Напрямую указываю на это" },
-      { value: "b", text: "Стараюсь деликатно намекнуть" },
-      { value: "c", text: "Игнорирую, если это не влияет на меня" },
-      { value: "d", text: "Сильно раздражаюсь, даже если не показываю этого" }
-    ],
-    category: "irritability"
-  },
-  {
-    id: 9,
-    text: "Перед принятием решения я...",
-    options: [
-      { value: "a", text: "Принимаю решение быстро, доверяя интуиции" },
-      { value: "b", text: "Тщательно взвешиваю все за и против" },
-      { value: "c", text: "Советуюсь с близкими или экспертами" },
-      { value: "d", text: "Беспокоюсь и откладываю решение до последнего" }
-    ],
-    category: "anxiety"
-  },
-  {
-    id: 10,
-    text: "Мои эмоции обычно...",
-    options: [
-      { value: "a", text: "Яркие и быстро меняются" },
-      { value: "b", text: "Устойчивые и умеренные" },
-      { value: "c", text: "Глубокие, но сдержанные внешне" },
-      { value: "d", text: "Спокойные, редко проявляются явно" }
-    ],
-    category: "temperament"
-  }
-];
 
 export default Results;

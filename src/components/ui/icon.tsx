@@ -1,38 +1,24 @@
 
-import React from "react";
-import * as Icons from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import * as LucideIcons from 'lucide-react';
 
-interface IconProps extends React.SVGProps<SVGSVGElement> {
+interface IconProps {
   name: string;
-  color?: string;
   size?: number;
   className?: string;
   fallback?: string;
 }
 
-const Icon = ({ 
-  name, 
-  color, 
-  size = 24, 
-  className, 
-  fallback = "HelpCircle",
-  ...props 
-}: IconProps) => {
-  const IconComponent = (Icons as any)[name] || (Icons as any)[fallback];
-
+const Icon: React.FC<IconProps> = ({ name, size = 24, className = "", fallback = "CircleAlert" }) => {
+  // Получаем компонент иконки из Lucide
+  const IconComponent = (LucideIcons as any)[name] || (LucideIcons as any)[fallback];
+  
   if (!IconComponent) {
-    return null;
+    console.warn(`Icon "${name}" not found and fallback "${fallback}" also not found.`);
+    return <div className={`inline-block ${className}`} style={{ width: size, height: size }} />;
   }
-
-  return (
-    <IconComponent 
-      color={color} 
-      size={size} 
-      className={cn("shrink-0", className)} 
-      {...props} 
-    />
-  );
+  
+  return <IconComponent size={size} className={className} />;
 };
 
 export default Icon;

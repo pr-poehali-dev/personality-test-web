@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { questions } from "@/data/questions";
@@ -8,7 +8,7 @@ import ProgressIndicator from "@/components/test/ProgressIndicator";
 import QuestionDisplay from "@/components/test/QuestionDisplay";
 import NavigationButtons from "@/components/test/NavigationButtons";
 
-const Test = () => {
+const Test: React.FC = () => {
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
@@ -32,7 +32,9 @@ const Test = () => {
       if (!isLastQuestion) {
         // Go to next question
         setCurrentQuestion(currentQuestion + 1);
-        setSelectedOption(null);
+        // Проверяем, есть ли уже ответ на следующий вопрос
+        const nextQuestionId = questions[currentQuestion + 1].id;
+        setSelectedOption(answers[nextQuestionId] || null);
       } else {
         // Test completed, navigate to results
         navigate("/results", { state: { answers } });
@@ -64,15 +66,14 @@ const Test = () => {
               currentQuestion={currentQuestion} 
               totalQuestions={questions.length} 
             />
+          </CardHeader>
+          
+          <CardContent>
             <QuestionDisplay 
               question={question}
               selectedOption={selectedOption}
               onOptionSelect={handleOptionSelect}
             />
-          </CardHeader>
-          
-          <CardContent>
-            {/* Оставляем пустым, так как вопрос и варианты теперь в QuestionDisplay */}
           </CardContent>
           
           <CardFooter>

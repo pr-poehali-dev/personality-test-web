@@ -1,7 +1,8 @@
 
+import React from 'react';
+import { Option } from "@/types/test";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Option } from "@/types/test";
 
 interface OptionsListProps {
   options: Option[];
@@ -9,27 +10,29 @@ interface OptionsListProps {
   onOptionSelect: (value: string) => void;
 }
 
-const OptionsList = ({ 
+const OptionsList: React.FC<OptionsListProps> = ({ 
   options, 
   selectedOption, 
   onOptionSelect 
-}: OptionsListProps) => {
+}) => {
   return (
-    <RadioGroup value={selectedOption || ""} className="space-y-3">
+    <RadioGroup 
+      className="mt-6 space-y-3"
+      value={selectedOption || undefined}
+      onValueChange={onOptionSelect}
+    >
       {options.map((option) => (
         <div 
           key={option.value} 
-          className="flex items-start space-x-2 p-3 rounded-md hover:bg-purple-50 transition-colors"
+          className={`flex items-center space-x-3 rounded-lg border p-4 transition-colors
+            ${selectedOption === option.value 
+              ? 'border-purple-400 bg-purple-50' 
+              : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50'}`}
         >
-          <RadioGroupItem 
-            value={option.value} 
-            id={`option-${option.value}`} 
-            onClick={() => onOptionSelect(option.value)}
-            className="mt-1"
-          />
+          <RadioGroupItem value={option.value} id={option.value} />
           <Label 
-            htmlFor={`option-${option.value}`}
-            className="flex-1 cursor-pointer font-normal"
+            htmlFor={option.value} 
+            className="flex-1 cursor-pointer text-gray-700"
           >
             {option.text}
           </Label>
