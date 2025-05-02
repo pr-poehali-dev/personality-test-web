@@ -10,17 +10,21 @@ import MbtiTypeCard from "@/components/test/MbtiTypeCard";
 import ResultsChart from "@/components/results/ResultsChart";
 import RecommendationsList from "@/components/results/RecommendationsList";
 import AdviceCard from "@/components/results/AdviceCard";
-import { getMbtiTypeFromResults, getMbtiDescription, getMbtiRecommendations } from "@/utils/questionUtils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+import { formatDate, generateId } from "@/lib/utils";
 import { AllPersonalityResults } from "@/components/results/ResultDescription";
 
 const Results: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, addTestResultToUser } = useAuth();
+  const { toast } = useToast();
   const [results, setResults] = useState<TestResults | null>(null);
-  const [personality, setPersonality] = useState<string>("");
   const [mbtiResult, setMbtiResult] = useState<MbtiResult | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingToProfile, setSavingToProfile] = useState(false);
 
   useEffect(() => {
     const answers = location.state?.answers;
@@ -33,8 +37,12 @@ const Results: React.FC = () => {
     // Устанавливаем начальное состояние загрузки
     setLoading(true);
 
-    // Используем dynamic import для асинхронной загрузки вопросов
-    import("@/data/questions").then(({ questions }) => {
+    // Используем dynamic import для асинхронной загрузки вопросов и утилит
+    Promise.all([
+      import("@/data/questions"), 
+      import("@/utils/questionUtils")
+    ]).then(([{ questions }, { getMbtiTypeFromResults, getMbtiDescription, getMbtiRecommendations }]) => {
+      // Вычисляем результаты на основе ответов
       const calculatedResults = calculateScores(questions, answers);
       
       // Определяем тип MBTI
@@ -44,16 +52,74 @@ const Results: React.FC = () => {
       // Получаем рекомендации на основе типа MBTI
       const personalRecommendations = getMbtiRecommendations(mbtiType);
       
-      setResults(calculatedResults);
+      // Добавляем уникальный ID к результатам
+      const resultsWithId = {
+        ...calculatedResults,
+        id: generateId(),
+        date: new Date(),
+        mbti: {
+          type: mbtiType,
+          title,
+          description
+        }
+      };
+      
+      setResults(resultsWithId);
       setMbtiResult({
         type: mbtiType,
         title,
         description
       });
       setRecommendations(personalRecommendations);
+      
+      // Если пользователь авторизован, сохраняем результаты в его профиль
+      if (user) {
+        saveResultsToUserProfile(resultsWithId);
+      }
+      
       setLoading(false);
+    }).catch(error => {
+      console.error("Ошибка при загрузке результатов:", error);
+      setLoading(false);
+      toast({
+        title: "Ошибка загрузки",
+        description: "Не удалось загрузить результаты теста. Пожалуйста, попробуйте снова.",
+        variant: "destructive"
+      });
     });
-  }, [location.state, navigate]);
+  }, [location.state, navigate, user, toast]);
+
+  // Функция для сохранения результатов в профиль пользователя
+  const saveResultsToUserProfile = async (testResults: TestResults) => {
+    if (!user) return;
+    
+    try {
+      setSavingToProfile(true);
+      const success = await addTestResultToUser(testResults);
+      
+      if (success) {
+        toast({
+          title: "Результаты сохранены",
+          description: "Результаты теста успешно сохранены в вашем профиле",
+        });
+      } else {
+        toast({
+          title: "Ошибка сохранения",
+          description: "Не удалось сохранить результаты в профиле",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Ошибка при сохранении результатов:", error);
+      toast({
+        title: "Ошибка сохранения",
+        description: "Произошла ошибка при сохранении результатов",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingToProfile(false);
+    }
+  };
 
   const calculateScores = (questions: Question[], answers: Record<number, string>) => {
     // Инициализация начальных баллов
@@ -106,28 +172,6 @@ const Results: React.FC = () => {
       irritability: (scores.irritability / (categoryCounters.irritability * 4)) * 100,
       anxiety: (scores.anxiety / (categoryCounters.anxiety * 4)) * 100
     };
-
-    // Определение типа личности
-    const personality_score = normalized_scores.personality;
-    const temperament_score = normalized_scores.temperament;
-    
-    let personalityType = "";
-    
-    if (personality_score > 75 && temperament_score > 75) {
-      personalityType = "Экстраверт-Холерик";
-    } else if (personality_score > 75 && temperament_score <= 75) {
-      personalityType = "Экстраверт-Сангвиник";
-    } else if (personality_score <= 75 && personality_score > 40 && temperament_score > 50) {
-      personalityType = "Амбиверт с чертами Холерика";
-    } else if (personality_score <= 75 && personality_score > 40 && temperament_score <= 50) {
-      personalityType = "Амбиверт с чертами Флегматика";
-    } else if (personality_score <= 40 && temperament_score > 40) {
-      personalityType = "Интроверт-Меланхолик";
-    } else {
-      personalityType = "Интроверт-Флегматик";
-    }
-    
-    setPersonality(personalityType);
 
     return normalized_scores;
   };
@@ -188,7 +232,7 @@ const Results: React.FC = () => {
     // Дополнительные стратегические советы
     advices.push({
       title: "Стратегия развития",
-      content: "Основываясь на вашем профиле, мы рекомендуем фокусироваться на развитии эмоционального интеллекта и практиковать осознанность в повседневной жизни.",
+      content: "Основываясь на вашем профиле, мы рекомендуем фокусироваться на развитии эмоционального интеллекта и практиковать осознанность в повседневной жизни. Ведение дневника эмоций поможет вам лучше понять свои реакции.",
       icon: "Compass",
       color: "purple"
     });
@@ -211,12 +255,36 @@ const Results: React.FC = () => {
     );
   }
 
+  // Определяем тип личности на основе баллов
+  const getPersonalityType = () => {
+    const { personality, temperament } = results;
+    
+    if (personality > 75 && temperament > 75) {
+      return "Экстраверт-Холерик";
+    } else if (personality > 75 && temperament <= 75) {
+      return "Экстраверт-Сангвиник";
+    } else if (personality <= 75 && personality > 40 && temperament > 50) {
+      return "Амбиверт с чертами Холерика";
+    } else if (personality <= 75 && personality > 40 && temperament <= 50) {
+      return "Амбиверт с чертами Флегматика";
+    } else if (personality <= 40 && temperament > 40) {
+      return "Интроверт-Меланхолик";
+    } else {
+      return "Интроверт-Флегматик";
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 p-4">
       <header className="w-full max-w-3xl mx-auto py-6">
         <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
           Результаты теста
         </h1>
+        {results.date && (
+          <p className="text-center text-gray-600 mt-1">
+            {formatDate(new Date(results.date))}
+          </p>
+        )}
       </header>
 
       <main className="flex-1 w-full max-w-3xl mx-auto space-y-6">
@@ -238,7 +306,7 @@ const Results: React.FC = () => {
             {/* Традиционный тип личности */}
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-center">
               <div className="text-purple-800 text-lg font-medium mb-1">Классический тип личности</div>
-              <div className="text-xl font-bold text-purple-900">{personality}</div>
+              <div className="text-xl font-bold text-purple-900">{getPersonalityType()}</div>
             </div>
             
             <Separator className="my-6 bg-purple-100" />
@@ -301,8 +369,40 @@ const Results: React.FC = () => {
               className="border-blue-300 text-blue-700"
             >
               <Icon name="Printer" size={18} className="mr-1.5" />
-              Распечатать результаты
+              Распечатать
             </Button>
+            
+            {user && (
+              <Button 
+                onClick={() => saveResultsToUserProfile(results)}
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={savingToProfile}
+              >
+                {savingToProfile ? (
+                  <>
+                    <Icon name="Loader2" className="mr-2 h-4 w-4 animate-spin" />
+                    Сохранение...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Save" size={18} className="mr-1.5" />
+                    Сохранить в профиль
+                  </>
+                )}
+              </Button>
+            )}
+            
+            {!user && (
+              <Button 
+                onClick={() => navigate("/login")}
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Icon name="LogIn" size={18} className="mr-1.5" />
+                Войти для сохранения
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </main>

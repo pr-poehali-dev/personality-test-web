@@ -1,14 +1,26 @@
 
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { v4 as uuidv4 } from 'uuid';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-// Добавляем утилиты для оптимизации производительности
+export function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date);
+}
+
+export function generateId(): string {
+  return uuidv4();
+}
+
 export function debounce<T extends (...args: any[]) => any>(
-  func: T, 
+  func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -24,36 +36,35 @@ export function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-// Мемоизация для кэширования результатов функций
-export function memoize<T extends (...args: any[]) => any>(fn: T): T {
-  const cache = new Map();
+export function calculateReadingTime(text: string): number {
+  const wordsPerMinute = 200;
+  const words = text.trim().split(/\s+/).length;
+  return Math.ceil(words / wordsPerMinute);
+}
+
+export function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+}
+
+export function getInitials(name: string): string {
+  if (!name) return '';
   
-  return ((...args: Parameters<T>): ReturnType<T> => {
-    const key = JSON.stringify(args);
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-    
-    const result = fn(...args);
-    cache.set(key, result);
-    return result;
-  }) as T;
+  const parts = name.split(' ');
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-// Утилита для оптимизированной загрузки изображений
-export function preloadImage(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-  });
-}
-
-// Утилита для преобразования обычных CSS цвета в CSS переменные
-export function getCssVariable(variableName: string): string {
-  if (typeof window === 'undefined') return '';
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue(variableName)
-    .trim();
+export function getRandomColor(): string {
+  const colors = [
+    'red', 'blue', 'green', 'yellow', 'purple', 
+    'pink', 'orange', 'indigo', 'teal', 'cyan'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,8 +8,11 @@ import Icon from "@/components/ui/icon";
 import { Emotion, EmotionEvent } from '@/types/test';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 import EmotionSelector from './EmotionSelector';
-import EmotionRecommendations from './EmotionRecommendations';
+import EmotionRecommendations from '@/components/EmotionRecommendations';
+import { emotions } from '@/utils/emotions';
 
 interface EmotionDialogProps {
   isOpen: boolean;
@@ -26,11 +29,30 @@ const EmotionDialog: React.FC<EmotionDialogProps> = ({
   onSaveEmotion,
   existingEmotion 
 }) => {
+  const { user, addEmotionEventToUser } = useAuth();
+  const { toast } = useToast();
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
-  const [note, setNote] = useState<string>(existingEmotion?.note || '');
+  const [note, setNote] = useState<string>('');
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
+  // Устанавливаем существующие данные при открытии диалога
+  useEffect(() => {
+    if (existingEmotion) {
+      setNote(existingEmotion.note || '');
+      const emotion = emotions.find(e => e.id === existingEmotion.emotionId);
+      if (emotion) {
+        setSelectedEmotion(emotion);
+      }
+    } else {
+      setNote('');
+      setSelectedEmotion(null);
+    }
+  }, [existingEmotion, isOpen]);
+
+  const handleSave = async () => {
     if (!selectedDate || !selectedEmotion) return;
+    
+    setSaving(true);
     
     const emotionEvent: EmotionEvent = {
       date: selectedDate,
@@ -38,7 +60,30 @@ const EmotionDialog: React.FC<EmotionDialogProps> = ({
       note: note.trim()
     };
     
+    // Сохраняем в контекст пользователя, если пользователь авторизован
+    if (user) {
+      try {
+        const success = await addEmotionEventToUser(emotionEvent);
+        if (success) {
+          toast({
+            title: "Запись сохранена",
+            description: "Запись об эмоции успешно добавлена в ваш дневник",
+            variant: "default",
+          });
+        }
+      } catch (error) {
+        console.error('Ошибка при сохранении эмоции:', error);
+        toast({
+          title: "Ошибка сохранения",
+          description: "Не удалось сохранить запись. Пожалуйста, попробуйте снова.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    // Сохраняем локально
     onSaveEmotion(emotionEvent);
+    setSaving(false);
     onClose();
   };
 
@@ -52,7 +97,7 @@ const EmotionDialog: React.FC<EmotionDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
             Запись в дневник эмоций
@@ -95,9 +140,20 @@ const EmotionDialog: React.FC<EmotionDialogProps> = ({
             
             <EmotionRecommendations emotion={selectedEmotion} />
 
-            <DialogFooter>
-              <Button variant="outline" onClick={onClose}>Отмена</Button>
-              <Button onClick={handleSave}>Сохранить</Button>
+            <DialogFooter className="flex space-x-2 pt-4">
+              <Button variant="outline" onClick={onClose} disabled={saving}>
+                Отмена
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Icon name="Loader2" className="mr-2 h-4 w-4 animate-spin" />
+                    Сохранение...
+                  </>
+                ) : (
+                  'Сохранить'
+                )}
+              </Button>
             </DialogFooter>
           </>
         )}

@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, addMonths, subMonths } from 'date-fns';
@@ -9,12 +9,28 @@ import { EmotionEvent } from '@/types/test';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import EmotionDayCell from '@/components/diary/EmotionDayCell';
 import EmotionDialog from '@/components/diary/EmotionDialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const DiaryPage: React.FC = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [emotionEvents, setEmotionEvents] = useLocalStorage<EmotionEvent[]>('emotion-diary', []);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Объединяем локальные и пользовательские эмоции
+  const allEmotions = useMemo(() => {
+    const userEmotions = user?.emotions || [];
+    // Преобразуем даты из строк в объекты Date для пользовательских эмоций
+    const processedUserEmotions = userEmotions.map(emotion => ({
+      ...emotion,
+      date: new Date(emotion.date)
+    }));
+    
+    return [...emotionEvents, ...processedUserEmotions];
+  }, [emotionEvents, user?.emotions]);
 
   // Генерируем дни для текущего месяца
   const calendarDays = useMemo(() => {
@@ -33,10 +49,10 @@ const DiaryPage: React.FC = () => {
 
   // Получить эмоцию для указанной даты
   const getEmotionForDate = useCallback((date: Date): EmotionEvent | undefined => {
-    return emotionEvents.find(event => 
+    return allEmotions.find(event => 
       new Date(event.date).toDateString() === date.toDateString()
     );
-  }, [emotionEvents]);
+  }, [allEmotions]);
 
   // Обработчик клика по дню
   const handleDayClick = (date: Date) => {
@@ -46,13 +62,27 @@ const DiaryPage: React.FC = () => {
 
   // Сохранение эмоции
   const handleSaveEmotion = (emotionEvent: EmotionEvent) => {
-    // Удаляем существующую запись для этой даты, если она есть
-    const filteredEvents = emotionEvents.filter(event => 
-      new Date(event.date).toDateString() !== new Date(emotionEvent.date).toDateString()
-    );
-    
-    // Добавляем новую запись
-    setEmotionEvents([...filteredEvents, emotionEvent]);
+    try {
+      // Удаляем существующую запись для этой даты из локального хранилища, если она есть
+      const filteredEvents = emotionEvents.filter(event => 
+        new Date(event.date).toDateString() !== new Date(emotionEvent.date).toDateString()
+      );
+      
+      // Добавляем новую запись в локальное хранилище
+      setEmotionEvents([...filteredEvents, emotionEvent]);
+      
+      toast({
+        title: "Эмоция сохранена",
+        description: "Запись добавлена в ваш дневник эмоций",
+      });
+    } catch (error) {
+      console.error('Ошибка при сохранении эмоции:', error);
+      toast({
+        title: "Ошибка сохранения",
+        description: "Не удалось сохранить запись. Пожалуйста, попробуйте снова.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Получаем существующую эмоцию для выбранной даты
@@ -81,7 +111,7 @@ const DiaryPage: React.FC = () => {
               >
                 <Icon name="ChevronLeft" className="h-4 w-4" />
               </Button>
-              <CardTitle className="text-xl">
+              <CardTitle className="text-xl capitalize">
                 {format(currentDate, 'LLLL yyyy', { locale: ru })}
               </CardTitle>
               <Button
@@ -103,7 +133,7 @@ const DiaryPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             {/* Дни недели */}
-            <div className="grid grid-cols-7 gap-1 mb-1">
+            <div className="grid grid-cols-7 gap-1 mb-2">
               {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, i) => (
                 <div 
                   key={i} 
@@ -115,7 +145,7 @@ const DiaryPage: React.FC = () => {
             </div>
             
             {/* Календарь */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-2">
               {calendarDays.map((day) => (
                 <EmotionDayCell
                   key={day.toString()} 

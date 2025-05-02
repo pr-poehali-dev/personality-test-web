@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import ProgressIndicator from "@/components/test/ProgressIndicator";
 import NavigationButtons from "@/components/test/NavigationButtons";
 import QuestionDisplay from "@/components/test/QuestionDisplay";
+import Header from "@/components/Header";
 import Icon from "@/components/ui/icon";
 import { Answers } from "@/types/test";
 
@@ -22,6 +23,9 @@ const Test: React.FC = () => {
     // Асинхронно загружаем вопросы
     import("@/data/questions").then(({ questions }) => {
       setQuestions(questions);
+      setLoading(false);
+    }).catch(error => {
+      console.error("Ошибка при загрузке вопросов:", error);
       setLoading(false);
     });
   }, []);
@@ -63,20 +67,19 @@ const Test: React.FC = () => {
       // Переходим к следующему вопросу
       setCurrentQuestion(prev => prev + 1);
       
-      // Сбрасываем выбор для следующего вопроса, если это не вопрос 14
+      // Всегда сбрасываем выбор для следующего вопроса
       const nextQuestionIndex = currentQuestion + 1;
-      if (nextQuestionIndex === 14) {
-        // Для вопроса 14 явно сбрасываем выбор
-        setSelectedOption(null);
-      } else {
-        // Для остальных проверяем наличие сохраненного ответа
+      if (nextQuestionIndex < questions.length) {
         const nextQuestion = questions[nextQuestionIndex];
         if (nextQuestion) {
           const nextQuestionId = nextQuestion.id;
-          setSelectedOption(updatedAnswers[nextQuestionId] || null);
+          const savedAnswer = updatedAnswers[nextQuestionId];
+          setSelectedOption(savedAnswer || null);
         } else {
           setSelectedOption(null);
         }
+      } else {
+        setSelectedOption(null);
       }
     } else {
       // Тест завершен, переходим к результатам
@@ -99,10 +102,13 @@ const Test: React.FC = () => {
       setCurrentQuestion(prev => prev - 1);
       
       // Восстанавливаем предыдущий ответ, если он есть
-      const prevQuestion = questions[currentQuestion - 1];
-      if (prevQuestion) {
-        const prevQuestionId = prevQuestion.id;
-        setSelectedOption(answers[prevQuestionId] || null);
+      const prevQuestionIndex = currentQuestion - 1;
+      if (prevQuestionIndex >= 0 && prevQuestionIndex < questions.length) {
+        const prevQuestion = questions[prevQuestionIndex];
+        if (prevQuestion) {
+          const prevQuestionId = prevQuestion.id;
+          setSelectedOption(answers[prevQuestionId] || null);
+        }
       }
     }
   }, [currentQuestion, questions, answers, selectedOption, question]);
@@ -120,41 +126,45 @@ const Test: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 p-4">
-      <header className="w-full max-w-3xl mx-auto py-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
-          Психологический тест
-        </h1>
-      </header>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Header />
+      
+      <div className="flex-1 p-4">
+        <header className="w-full max-w-3xl mx-auto py-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
+            Психологический тест
+          </h1>
+        </header>
 
-      <main className="flex-1 w-full max-w-3xl mx-auto">
-        <Card className="border-purple-200 shadow-md">
-          <CardHeader>
-            <ProgressIndicator 
-              currentQuestion={currentQuestion} 
-              totalQuestions={questions.length} 
-            />
-          </CardHeader>
-          
-          <CardContent>
-            <QuestionDisplay 
-              question={question}
-              selectedOption={selectedOption}
-              onOptionSelect={handleOptionSelect}
-            />
-          </CardContent>
-          
-          <CardFooter>
-            <NavigationButtons 
-              onPrevious={handlePrevious}
-              onNext={handleNext}
-              isPreviousDisabled={currentQuestion === 0}
-              isNextDisabled={!selectedOption}
-              isLastQuestion={isLastQuestion}
-            />
-          </CardFooter>
-        </Card>
-      </main>
+        <main className="flex-1 w-full max-w-3xl mx-auto">
+          <Card className="border-purple-200 shadow-md">
+            <CardHeader>
+              <ProgressIndicator 
+                currentQuestion={currentQuestion} 
+                totalQuestions={questions.length} 
+              />
+            </CardHeader>
+            
+            <CardContent>
+              <QuestionDisplay 
+                question={question}
+                selectedOption={selectedOption}
+                onOptionSelect={handleOptionSelect}
+              />
+            </CardContent>
+            
+            <CardFooter>
+              <NavigationButtons 
+                onPrevious={handlePrevious}
+                onNext={handleNext}
+                isPreviousDisabled={currentQuestion === 0}
+                isNextDisabled={!selectedOption}
+                isLastQuestion={isLastQuestion}
+              />
+            </CardFooter>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 };
