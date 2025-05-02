@@ -27,18 +27,3 @@ export interface TestResults {
 }
 
 export type Answers = Record<number, string>;
-
-export interface Emotion {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  description: string;
-  recommendations: string[];
-}
-
-export interface EmotionEvent {
-  date: Date;
-  emotionId: string;
-  note?: string;
-}

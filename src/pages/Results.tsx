@@ -11,7 +11,6 @@ import ResultsChart from "@/components/results/ResultsChart";
 import RecommendationsList from "@/components/results/RecommendationsList";
 import AdviceCard from "@/components/results/AdviceCard";
 import { getMbtiTypeFromResults, getMbtiDescription, getMbtiRecommendations } from "@/utils/questionUtils";
-import { AllPersonalityResults } from "@/components/results/ResultDescription";
 
 const Results: React.FC = () => {
   const location = useLocation();
@@ -243,11 +242,6 @@ const Results: React.FC = () => {
             
             <Separator className="my-6 bg-purple-100" />
             
-            {/* Детальные описания характеристик */}
-            <AllPersonalityResults results={results} />
-            
-            <Separator className="my-6 bg-purple-100" />
-            
             {/* Results Charts */}
             <ResultsChart results={results} />
             
@@ -286,14 +280,6 @@ const Results: React.FC = () => {
             >
               Пройти тест снова
               <Icon name="RefreshCw" size={18} className="ml-1.5" />
-            </Button>
-            <Button 
-              onClick={() => navigate("/diary")}
-              variant="outline"
-              className="border-purple-300 text-purple-700"
-            >
-              <Icon name="Calendar" size={18} className="mr-1.5" />
-              Дневник эмоций
             </Button>
             <Button 
               onClick={() => window.print()} 
