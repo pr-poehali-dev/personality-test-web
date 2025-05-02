@@ -3,8 +3,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +10,41 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-purple-50">
       {/* Шапка */}
-      <Header />
+      <header className="bg-white shadow-sm py-4">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-purple-800">Психологический помощник</h1>
+          <nav className="hidden md:flex space-x-6">
+            <Button 
+              variant="link" 
+              onClick={() => navigate("/")}
+              className="text-purple-700"
+            >
+              Главная
+            </Button>
+            <Button 
+              variant="link" 
+              onClick={() => navigate("/test")}
+              className="text-purple-700"
+            >
+              Пройти тест
+            </Button>
+            <Button 
+              variant="link" 
+              onClick={() => navigate("/diary")}
+              className="text-purple-700"
+            >
+              Дневник эмоций
+            </Button>
+          </nav>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden"
+          >
+            <Icon name="Menu" className="h-6 w-6" />
+          </Button>
+        </div>
+      </header>
 
       {/* Основная секция */}
       <main className="flex-1">
@@ -94,55 +126,27 @@ const Index: React.FC = () => {
             </div>
           </div>
         </section>
-
-        {/* Секция личный кабинет */}
-        <section className="py-16 bg-purple-50 px-4">
-          <div className="container mx-auto max-w-5xl">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <div className="md:w-1/2">
-                <img 
-                  src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                  alt="Личный кабинет" 
-                  className="rounded-lg shadow-xl max-w-full h-auto"
-                />
-              </div>
-              <div className="md:w-1/2">
-                <h3 className="text-2xl font-bold text-purple-800 mb-4">
-                  Личный кабинет
-                </h3>
-                <p className="text-gray-700 mb-6">
-                  Создайте личный кабинет, чтобы сохранять результаты тестов и вести дневник эмоций. 
-                  Отслеживайте свой прогресс и получайте доступ к своим данным с любого устройства.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start">
-                    <Icon name="CheckSquare" className="h-5 w-5 text-purple-600 mt-0.5 mr-2 shrink-0" />
-                    <span>Сохранение всех результатов тестов</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Icon name="CheckSquare" className="h-5 w-5 text-purple-600 mt-0.5 mr-2 shrink-0" />
-                    <span>Отслеживание прогресса и изменений со временем</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Icon name="CheckSquare" className="h-5 w-5 text-purple-600 mt-0.5 mr-2 shrink-0" />
-                    <span>Ведение дневника эмоций с синхронизацией</span>
-                  </li>
-                </ul>
-                <Button 
-                  onClick={() => navigate("/login")}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  <Icon name="UserPlus" className="mr-2 h-4 w-4" />
-                  Создать аккаунт
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Подвал */}
-      <Footer />
+      <footer className="bg-purple-800 text-white py-8 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p>&copy; 2025 Психологический помощник</p>
+            <div className="flex space-x-4 mt-4 md:mt-0">
+              <Button variant="ghost" size="icon">
+                <Icon name="Mail" className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Icon name="Instagram" className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Icon name="Facebook" className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

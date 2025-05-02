@@ -24,8 +24,6 @@ export interface TestResults {
   irritability: number;
   anxiety: number;
   mbti?: MbtiResult;
-  date?: Date;
-  id?: string;
 }
 
 export type Answers = Record<number, string>;
@@ -37,20 +35,10 @@ export interface Emotion {
   color: string;
   description: string;
   recommendations: string[];
-  copingStrategies?: string[];
 }
 
 export interface EmotionEvent {
   date: Date;
   emotionId: string;
   note?: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  createdAt: Date;
-  testResults?: TestResults[];
-  emotions?: EmotionEvent[];
 }

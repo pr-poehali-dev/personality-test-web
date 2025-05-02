@@ -190,14 +190,14 @@ const ResultDescription: React.FC<ResultDescriptionProps> = ({
   const description = getDescriptionByValue(value, descriptions);
 
   return (
-    <Card className="border-gray-200 shadow-sm">
+    <Card className={`border-${color}-200 shadow-sm`}>
       <CardHeader className="flex flex-row items-center gap-3 py-3">
         <div className={`bg-${color}-100 p-2 rounded-full`}>
           <Icon name={icon} className={`h-5 w-5 text-${color}-600`} />
         </div>
         <h3 className="font-medium text-lg">{title}</h3>
         <div className={`ml-auto px-2 py-1 bg-${color}-100 text-${color}-800 rounded-md font-medium text-sm`}>
-          {Math.round(value)}%
+          {value.toFixed(0)}%
         </div>
       </CardHeader>
       <CardContent className="pt-0 pb-4 px-4">

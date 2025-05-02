@@ -8,26 +8,26 @@ interface RecommendationsListProps {
 }
 
 const RecommendationsList: React.FC<RecommendationsListProps> = ({ recommendations }) => {
-  if (!recommendations || recommendations.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-purple-800">Персональные рекомендации</h3>
-      <Card className="border-purple-200">
-        <CardContent className="p-4">
-          <ul className="space-y-3">
-            {recommendations.map((recommendation, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <Icon name="CheckCircle" className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
-                <span className="text-gray-700">{recommendation}</span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="bg-blue-50 border-blue-100">
+      <CardContent className="p-4">
+        <div className="flex items-center mb-3">
+          <Icon name="Lightbulb" size={20} className="text-blue-600 mr-2" />
+          <h3 className="text-blue-800 font-medium">Персональные рекомендации</h3>
+        </div>
+        
+        <ul className="space-y-2">
+          {recommendations.map((recommendation, index) => (
+            <li key={index} className="flex items-start text-gray-700 text-sm">
+              <span className="mr-2 text-blue-500 mt-0.5">
+                <Icon name="CheckCircle2" size={14} />
+              </span>
+              {recommendation}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 };
 

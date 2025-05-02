@@ -23,10 +23,23 @@ const MbtiTypeCard: React.FC<MbtiTypeCardProps> = ({ mbtiResult }) => {
     }
   };
   
+  // Определяем цвет для типа MBTI
+  const getMbtiColor = (mbtiType: string): string => {
+    // Используем третью букву для определения цвета
+    const thirdLetter = mbtiType.charAt(2);
+    
+    switch(thirdLetter) {
+      case 'T': return 'blue';      // Мышление - синий
+      case 'F': return 'purple';    // Чувство - фиолетовый
+      default: return 'indigo';
+    }
+  };
+  
   const iconName = getMbtiIcon(type);
+  const color = getMbtiColor(type);
   
   return (
-    <Card className="border-purple-200 overflow-hidden">
+    <Card className={`border-${color}-200 overflow-hidden`}>
       <div className="bg-purple-600 p-4 text-white">
         <div className="flex items-center justify-between">
           <div>
