@@ -1,14 +1,12 @@
 
-import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import ProgressIndicator from "@/components/test/ProgressIndicator";
 import NavigationButtons from "@/components/test/NavigationButtons";
+import QuestionDisplay from "@/components/test/QuestionDisplay";
 import Icon from "@/components/ui/icon";
 import { Answers } from "@/types/test";
-
-// Используем ленивую загрузку для вопросов и компонентов отображения
-const QuestionDisplay = lazy(() => import("@/components/test/QuestionDisplay"));
 
 const Test: React.FC = () => {
   const navigate = useNavigate();
@@ -56,11 +54,15 @@ const Test: React.FC = () => {
       // Переходим к следующему вопросу
       setCurrentQuestion(prev => prev + 1);
       
-      // Проверяем, есть ли уже ответ на следующий вопрос
+      // Очищаем выбранный вариант для следующего вопроса
+      // или устанавливаем сохраненный ранее ответ
       const nextQuestion = questions[currentQuestion + 1];
       if (nextQuestion) {
         const nextQuestionId = nextQuestion.id;
-        setSelectedOption(updatedAnswers[nextQuestionId] || null);
+        const savedAnswer = updatedAnswers[nextQuestionId];
+        setSelectedOption(savedAnswer || null);
+      } else {
+        setSelectedOption(null);
       }
     } else {
       // Тест завершен, переходим к результатам
@@ -71,16 +73,25 @@ const Test: React.FC = () => {
   // Обработчик перехода к предыдущему вопросу
   const handlePrevious = useCallback(() => {
     if (currentQuestion > 0) {
+      // Сохраняем текущий ответ перед переходом назад
+      if (selectedOption && question) {
+        setAnswers(prev => ({
+          ...prev,
+          [question.id]: selectedOption
+        }));
+      }
+      
       // Переходим к предыдущему вопросу
       setCurrentQuestion(prev => prev - 1);
       
       // Восстанавливаем предыдущий ответ, если он есть
       const prevQuestion = questions[currentQuestion - 1];
       if (prevQuestion) {
-        setSelectedOption(answers[prevQuestion.id] || null);
+        const prevQuestionId = prevQuestion.id;
+        setSelectedOption(answers[prevQuestionId] || null);
       }
     }
-  }, [currentQuestion, questions, answers]);
+  }, [currentQuestion, questions, answers, selectedOption, question]);
 
   // Отображаем индикатор загрузки, пока вопросы не загружены
   if (loading || !question) {
@@ -112,13 +123,11 @@ const Test: React.FC = () => {
           </CardHeader>
           
           <CardContent>
-            <Suspense fallback={<div className="p-4 text-center">Загрузка вопроса...</div>}>
-              <QuestionDisplay 
-                question={question}
-                selectedOption={selectedOption}
-                onOptionSelect={handleOptionSelect}
-              />
-            </Suspense>
+            <QuestionDisplay 
+              question={question}
+              selectedOption={selectedOption}
+              onOptionSelect={handleOptionSelect}
+            />
           </CardContent>
           
           <CardFooter>
@@ -136,5 +145,4 @@ const Test: React.FC = () => {
   );
 };
 
-// Используем React.memo для оптимизации рендеринга
 export default React.memo(Test);

@@ -9,6 +9,7 @@ import { Question, TestResults, MbtiResult } from "@/types/test";
 import MbtiTypeCard from "@/components/test/MbtiTypeCard";
 import ResultsChart from "@/components/results/ResultsChart";
 import RecommendationsList from "@/components/results/RecommendationsList";
+import AdviceCard from "@/components/results/AdviceCard";
 import { getMbtiTypeFromResults, getMbtiDescription, getMbtiRecommendations } from "@/utils/questionUtils";
 
 const Results: React.FC = () => {
@@ -130,6 +131,70 @@ const Results: React.FC = () => {
     return normalized_scores;
   };
 
+  // Генерируем советы на основе результатов теста
+  const adviceCards = useMemo(() => {
+    if (!results) return [];
+
+    const advices = [];
+
+    // Советы по коммуникации на основе личности
+    if (results.personality > 70) {
+      advices.push({
+        title: "Совет по коммуникации",
+        content: "Используйте вашу общительность для налаживания новых контактов, но не забывайте давать другим высказаться. Практикуйте активное слушание.",
+        icon: "MessageCircle",
+        color: "blue"
+      });
+    } else if (results.personality < 40) {
+      advices.push({
+        title: "Совет по коммуникации",
+        content: "Цените свою склонность к глубоким беседам. Планируйте социальные активности заранее и оставляйте время для восстановления энергии.",
+        icon: "MessageCircle",
+        color: "blue"
+      });
+    }
+
+    // Советы по управлению стрессом
+    if (results.anxiety < 40) {
+      advices.push({
+        title: "Управление стрессом",
+        content: "У вас высокий уровень тревожности. Практикуйте медитацию и дыхательные упражнения. Ведите дневник беспокойств, чтобы визуализировать свои страхи.",
+        icon: "Leaf",
+        color: "green"
+      });
+    }
+
+    // Советы по уверенности в себе
+    if (results.confidence < 50) {
+      advices.push({
+        title: "Развитие уверенности",
+        content: "Ведите журнал успехов, даже малых. Практикуйте позитивные утверждения и старайтесь выходить из зоны комфорта постепенно, ставя небольшие достижимые цели.",
+        icon: "Trophy",
+        color: "amber"
+      });
+    }
+
+    // Советы по управлению эмоциями
+    if (results.irritability < 50) {
+      advices.push({
+        title: "Управление эмоциями",
+        content: "Практикуйте технику паузы перед реакцией. При раздражении сделайте глубокий вдох и сосчитайте до 10, прежде чем ответить. Регулярные физические упражнения помогут снизить общий уровень раздражительности.",
+        icon: "HeartPulse",
+        color: "red"
+      });
+    }
+
+    // Дополнительные стратегические советы
+    advices.push({
+      title: "Стратегия развития",
+      content: "Основываясь на вашем профиле, мы рекомендуем фокусироваться на развитии эмоционального интеллекта и практиковать осознанность в повседневной жизни.",
+      icon: "Compass",
+      color: "purple"
+    });
+
+    return advices;
+  }, [results]);
+
   if (loading || !results) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -182,6 +247,22 @@ const Results: React.FC = () => {
             
             {/* Recommendations */}
             <RecommendationsList recommendations={recommendations} />
+
+            {/* Советы по развитию */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-purple-800 mb-4">Советы по развитию</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {adviceCards.map((advice, index) => (
+                  <AdviceCard
+                    key={index}
+                    title={advice.title}
+                    content={advice.content}
+                    icon={advice.icon}
+                    color={advice.color}
+                  />
+                ))}
+              </div>
+            </div>
           </CardContent>
           
           <CardFooter className="flex flex-wrap justify-center gap-3 p-6 bg-gray-50">

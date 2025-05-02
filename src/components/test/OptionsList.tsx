@@ -15,6 +15,11 @@ const OptionsList: React.FC<OptionsListProps> = ({
   selectedOption, 
   onOptionSelect 
 }) => {
+  // Обработчик клика по всему блоку опции для улучшения UX
+  const handleOptionClick = (value: string) => {
+    onOptionSelect(value);
+  };
+
   return (
     <RadioGroup 
       className="mt-6 space-y-3"
@@ -24,10 +29,11 @@ const OptionsList: React.FC<OptionsListProps> = ({
       {options.map((option) => (
         <div 
           key={option.value} 
-          className={`flex items-center space-x-3 rounded-lg border p-4 transition-colors
+          className={`flex items-center space-x-3 rounded-lg border p-4 transition-colors cursor-pointer
             ${selectedOption === option.value 
               ? 'border-purple-400 bg-purple-50' 
               : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/50'}`}
+          onClick={() => handleOptionClick(option.value)}
         >
           <RadioGroupItem value={option.value} id={option.value} />
           <Label 
