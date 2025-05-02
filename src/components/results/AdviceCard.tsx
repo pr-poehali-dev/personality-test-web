@@ -1,33 +1,26 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 
-interface AdviceCardProps {
+interface AdviceProps {
   title: string;
   content: string;
   icon: string;
   color: string;
 }
 
-const AdviceCard: React.FC<AdviceCardProps> = ({ title, content, icon, color }) => {
-  // Используем безопасное получение классов для цветов
-  const getColorClass = (baseColor: string, element: string, shade: number) => {
-    return `${element}-${baseColor}-${shade}`;
-  };
-
+const AdviceCard: React.FC<AdviceProps> = ({ title, content, icon, color }) => {
   return (
-    <Card className={`border border-${color}-200`}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className={`bg-${color}-100 p-2 rounded-full mt-1 shrink-0`}>
-            <Icon name={icon} className={`h-5 w-5 text-${color}-600`} />
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-800 mb-1">{title}</h4>
-            <p className="text-sm text-gray-600">{content}</p>
-          </div>
+    <Card className={`border-${color}-200 hover:shadow-md transition-shadow duration-300`}>
+      <CardHeader className={`flex flex-row items-center space-x-4 bg-${color}-50 p-4`}>
+        <div className={`p-2 rounded-full bg-${color}-100`}>
+          <Icon name={icon} className={`h-5 w-5 text-${color}-600`} />
         </div>
+        <h3 className={`font-semibold text-${color}-700`}>{title}</h3>
+      </CardHeader>
+      <CardContent className="pt-4 pb-5">
+        <p className="text-gray-600 text-sm">{content}</p>
       </CardContent>
     </Card>
   );
