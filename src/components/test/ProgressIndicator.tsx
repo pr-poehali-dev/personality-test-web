@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
 
@@ -32,4 +32,5 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   );
 };
 
-export default ProgressIndicator;
+// Используем memo для предотвращения лишних перерисовок
+export default memo(ProgressIndicator);

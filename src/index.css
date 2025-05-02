@@ -75,3 +75,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Анимации для плавного появления элементов */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Печатные стили для результатов */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .min-h-screen {
+    min-height: auto !important;
+  }
+  
+  /* Скрываем ненужные элементы при печати */
+  button, nav, .print-hidden {
+    display: none !important;
+  }
+  
+  /* Улучшаем стили карточек для печати */
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+  
+  /* Обеспечиваем, чтобы текст был читаем */
+  * {
+    color: black !important;
+    background-color: transparent !important;
+  }
+}

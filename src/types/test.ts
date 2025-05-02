@@ -11,4 +11,19 @@ export interface Question {
   category: "personality" | "confidence" | "irritability" | "anxiety" | "temperament";
 }
 
+export interface MbtiResult {
+  type: string;
+  title: string;
+  description: string;
+}
+
+export interface TestResults {
+  personality: number;
+  temperament: number;
+  confidence: number;
+  irritability: number;
+  anxiety: number;
+  mbti?: MbtiResult;
+}
+
 export type Answers = Record<number, string>;

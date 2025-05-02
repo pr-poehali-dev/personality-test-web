@@ -1,9 +1,26 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Question } from "@/types/test";
 import { CardTitle } from "@/components/ui/card";
 import OptionsList from "./OptionsList";
 import Icon from "@/components/ui/icon";
+
+// Кэширование для категорий вопросов
+const categoryIcons: Record<string, string> = {
+  'personality': "User",
+  'confidence': "Shield",
+  'irritability': "Zap",
+  'anxiety': "AlertCircle",
+  'temperament': "Heart"
+};
+
+const categoryNames: Record<string, string> = {
+  'personality': "Личность",
+  'confidence': "Уверенность",
+  'irritability': "Раздражительность",
+  'anxiety': "Тревожность",
+  'temperament': "Темперамент"
+};
 
 interface QuestionDisplayProps {
   question: Question;
@@ -16,35 +33,11 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   selectedOption, 
   onOptionSelect 
 }) => {
-  // Определение иконки для категории вопроса
-  const getCategoryIcon = (category: string) => {
-    switch(category) {
-      case 'personality': return "User";
-      case 'confidence': return "Shield";
-      case 'irritability': return "Zap";
-      case 'anxiety': return "AlertCircle";
-      case 'temperament': return "Heart";
-      default: return "HelpCircle";
-    }
-  };
-
-  // Определение названия категории
-  const getCategoryName = (category: string) => {
-    switch(category) {
-      case 'personality': return "Личность";
-      case 'confidence': return "Уверенность";
-      case 'irritability': return "Раздражительность";
-      case 'anxiety': return "Тревожность";
-      case 'temperament': return "Темперамент";
-      default: return "Другое";
-    }
-  };
-
   return (
     <>
       <div className="flex items-center mb-2 text-xs font-medium text-purple-500">
-        <Icon name={getCategoryIcon(question.category)} size={14} className="mr-1" />
-        <span>{getCategoryName(question.category)}</span>
+        <Icon name={categoryIcons[question.category] || "HelpCircle"} size={14} className="mr-1" />
+        <span>{categoryNames[question.category] || "Другое"}</span>
       </div>
       <CardTitle className="text-xl mt-3 text-purple-700">
         {question.text}
@@ -58,4 +51,5 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   );
 };
 
-export default QuestionDisplay;
+// Мемоизируем компонент для предотвращения перерисовок при неизменных props
+export default memo(QuestionDisplay);

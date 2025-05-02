@@ -1,26 +1,24 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Icon from "@/components/ui/icon";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { Question } from "@/types/test";
-
-interface ResultCategory {
-  name: string;
-  score: number;
-  description: string;
-  icon: string;
-  color: string;
-}
+import { Question, TestResults, MbtiResult } from "@/types/test";
+import MbtiTypeCard from "@/components/test/MbtiTypeCard";
+import ResultsChart from "@/components/results/ResultsChart";
+import RecommendationsList from "@/components/results/RecommendationsList";
+import { getMbtiTypeFromResults, getMbtiDescription, getMbtiRecommendations } from "@/utils/questionUtils";
 
 const Results: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [results, setResults] = useState<ResultCategory[]>([]);
+  const [results, setResults] = useState<TestResults | null>(null);
   const [personality, setPersonality] = useState<string>("");
+  const [mbtiResult, setMbtiResult] = useState<MbtiResult | null>(null);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const answers = location.state?.answers;
@@ -30,10 +28,28 @@ const Results: React.FC = () => {
       return;
     }
 
-    // Импортируем вопросы из отдельного модуля
+    // Устанавливаем начальное состояние загрузки
+    setLoading(true);
+
+    // Используем dynamic import для асинхронной загрузки вопросов
     import("@/data/questions").then(({ questions }) => {
       const calculatedResults = calculateScores(questions, answers);
+      
+      // Определяем тип MBTI
+      const mbtiType = getMbtiTypeFromResults(calculatedResults);
+      const { title, description } = getMbtiDescription(mbtiType);
+      
+      // Получаем рекомендации на основе типа MBTI
+      const personalRecommendations = getMbtiRecommendations(mbtiType);
+      
       setResults(calculatedResults);
+      setMbtiResult({
+        type: mbtiType,
+        title,
+        description
+      });
+      setRecommendations(personalRecommendations);
+      setLoading(false);
     });
   }, [location.state, navigate]);
 
@@ -50,9 +66,25 @@ const Results: React.FC = () => {
     // Вес ответов: a=4, b=3, c=2, d=1
     const weights: Record<string, number> = { a: 4, b: 3, c: 2, d: 1 };
 
+    // Кэшируем категории вопросов для оптимизации
+    const questionsMap: Record<number, Question> = {};
+    const categoryCounters: Record<string, number> = {
+      personality: 0,
+      temperament: 0,
+      confidence: 0,
+      irritability: 0,
+      anxiety: 0
+    };
+    
+    // Создаем карту вопросов и считаем количество вопросов в каждой категории
+    questions.forEach(q => {
+      questionsMap[q.id] = q;
+      categoryCounters[q.category]++;
+    });
+
     // Суммирование баллов по категориям
     for (const questionId in answers) {
-      const question = questions.find(q => q.id === parseInt(questionId));
+      const question = questionsMap[parseInt(questionId)];
       if (question) {
         const answer = answers[questionId];
         // Для некоторых категорий нужно инвертировать баллы
@@ -65,20 +97,12 @@ const Results: React.FC = () => {
     }
 
     // Нормализация баллов к шкале 0-100
-    const questions_by_category = {
-      personality: questions.filter(q => q.category === 'personality').length,
-      temperament: questions.filter(q => q.category === 'temperament').length,
-      confidence: questions.filter(q => q.category === 'confidence').length,
-      irritability: questions.filter(q => q.category === 'irritability').length,
-      anxiety: questions.filter(q => q.category === 'anxiety').length
-    };
-
     const normalized_scores = {
-      personality: (scores.personality / (questions_by_category.personality * 4)) * 100,
-      temperament: (scores.temperament / (questions_by_category.temperament * 4)) * 100,
-      confidence: (scores.confidence / (questions_by_category.confidence * 4)) * 100,
-      irritability: (scores.irritability / (questions_by_category.irritability * 4)) * 100,
-      anxiety: (scores.anxiety / (questions_by_category.anxiety * 4)) * 100
+      personality: (scores.personality / (categoryCounters.personality * 4)) * 100,
+      temperament: (scores.temperament / (categoryCounters.temperament * 4)) * 100,
+      confidence: (scores.confidence / (categoryCounters.confidence * 4)) * 100,
+      irritability: (scores.irritability / (categoryCounters.irritability * 4)) * 100,
+      anxiety: (scores.anxiety / (categoryCounters.anxiety * 4)) * 100
     };
 
     // Определение типа личности
@@ -103,49 +127,19 @@ const Results: React.FC = () => {
     
     setPersonality(personalityType);
 
-    return [
-      {
-        name: "Уверенность",
-        score: normalized_scores.confidence,
-        description: normalized_scores.confidence > 70 
-          ? "Вы очень уверенный в себе человек, легко принимаете решения и не сомневаетесь в своих силах."
-          : normalized_scores.confidence > 40 
-          ? "Ваша уверенность находится на среднем уровне. В знакомых ситуациях вы чувствуете себя комфортно."
-          : "Вам часто не хватает уверенности в себе, вы склонны сомневаться в своих решениях.",
-        icon: "Medal",
-        color: "green"
-      },
-      {
-        name: "Раздражительность",
-        score: normalized_scores.irritability,
-        description: normalized_scores.irritability > 70 
-          ? "Вы очень спокойный человек, редко раздражаетесь и хорошо справляетесь со стрессом."
-          : normalized_scores.irritability > 40 
-          ? "У вас средний уровень раздражительности. В большинстве ситуаций вы сохраняете спокойствие."
-          : "Вы склонны к повышенной раздражительности, легко выходите из равновесия.",
-        icon: "ZapOff",
-        color: "red"
-      },
-      {
-        name: "Тревожность",
-        score: normalized_scores.anxiety,
-        description: normalized_scores.anxiety > 70 
-          ? "У вас низкий уровень тревожности. Вы спокойно относитесь к неопределенности и редко беспокоитесь."
-          : normalized_scores.anxiety > 40 
-          ? "Средний уровень тревожности. Вы иногда беспокоитесь, но в целом справляетесь с тревогой."
-          : "Высокий уровень тревожности. Вы часто испытываете беспокойство и склонны к переживаниям.",
-        icon: "AlertCircle",
-        color: "yellow"
-      }
-    ];
+    return normalized_scores;
   };
 
-  if (results.length === 0) {
+  if (loading || !results) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Icon name="Loader2" size={36} className="animate-spin mx-auto text-purple-600" />
-          <p className="mt-4 text-gray-600">Анализируем результаты...</p>
+          <div className="relative w-16 h-16 mx-auto mb-4">
+            <Icon name="Loader2" size={64} className="animate-spin text-purple-600 absolute" />
+            <Icon name="Brain" size={32} className="text-purple-300 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="text-gray-600 font-medium">Анализируем ваши ответы...</p>
+          <p className="text-gray-500 text-sm mt-2">Это может занять несколько секунд</p>
         </div>
       </div>
     );
@@ -160,55 +154,43 @@ const Results: React.FC = () => {
       </header>
 
       <main className="flex-1 w-full max-w-3xl mx-auto space-y-6">
-        <Card className="border-purple-200 shadow-md">
-          <CardHeader>
-            <CardTitle className="text-2xl text-purple-700 text-center">
+        <Card className="border-purple-200 shadow-md overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+            <CardTitle className="text-2xl text-center">
               Ваш психологический профиль
             </CardTitle>
           </CardHeader>
           
-          <CardContent className="space-y-6">
-            <div className="bg-purple-50 p-5 rounded-lg border border-purple-100 text-center">
-              <div className="text-purple-800 text-lg font-medium mb-2">Тип личности</div>
-              <div className="text-2xl font-bold text-purple-900">{personality}</div>
+          <CardContent className="p-6 space-y-6">
+            {/* MBTI Type Card */}
+            {mbtiResult && (
+              <div className="mb-6">
+                <MbtiTypeCard mbtiResult={mbtiResult} />
+              </div>
+            )}
+            
+            {/* Традиционный тип личности */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-center">
+              <div className="text-purple-800 text-lg font-medium mb-1">Классический тип личности</div>
+              <div className="text-xl font-bold text-purple-900">{personality}</div>
             </div>
             
             <Separator className="my-6 bg-purple-100" />
             
-            <div className="space-y-6">
-              {results.map((result, index) => (
-                <div key={index}>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`bg-${result.color}-100 rounded-full p-2 text-${result.color}-600`}>
-                      <Icon name={result.icon} size={24} />
-                    </div>
-                    <span className="font-medium text-lg">{result.name}</span>
-                    <span className="ml-auto font-semibold">{Math.round(result.score)}%</span>
-                  </div>
-                  <Progress value={result.score} className={`h-2 bg-${result.color}-100`} />
-                  <p className="mt-2 text-gray-600 text-sm">{result.description}</p>
-                </div>
-              ))}
-            </div>
+            {/* Results Charts */}
+            <ResultsChart results={results} />
             
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-6">
-              <p className="text-blue-800 font-medium mb-2">Рекомендации:</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm">
-                <li>Регулярно практикуйте самоанализ и рефлексию</li>
-                <li>Развивайте эмоциональный интеллект</li>
-                <li>Изучите литературу по психологии личности</li>
-                <li>Обратите внимание на развитие коммуникативных навыков</li>
-              </ul>
-            </div>
+            {/* Recommendations */}
+            <RecommendationsList recommendations={recommendations} />
           </CardContent>
           
-          <CardFooter className="flex justify-center pb-6">
+          <CardFooter className="flex flex-wrap justify-center gap-3 p-6 bg-gray-50">
             <Button 
               onClick={() => navigate("/")} 
               variant="outline"
-              className="mr-3 border-purple-300 text-purple-700"
+              className="border-purple-300 text-purple-700"
             >
-              <Icon name="Home" size={18} className="mr-1" />
+              <Icon name="Home" size={18} className="mr-1.5" />
               На главную
             </Button>
             <Button 
@@ -216,7 +198,15 @@ const Results: React.FC = () => {
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               Пройти тест снова
-              <Icon name="RefreshCw" size={18} className="ml-1" />
+              <Icon name="RefreshCw" size={18} className="ml-1.5" />
+            </Button>
+            <Button 
+              onClick={() => window.print()} 
+              variant="outline"
+              className="border-blue-300 text-blue-700"
+            >
+              <Icon name="Printer" size={18} className="mr-1.5" />
+              Распечатать результаты
             </Button>
           </CardFooter>
         </Card>

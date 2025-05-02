@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Option } from "@/types/test";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -42,4 +42,5 @@ const OptionsList: React.FC<OptionsListProps> = ({
   );
 };
 
-export default OptionsList;
+// Мемоизируем компонент для предотвращения перерисовок при неизменных props
+export default memo(OptionsList);
