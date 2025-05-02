@@ -15,6 +15,7 @@ const Test: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [nextClicked, setNextClicked] = useState(false);
 
   // Загружаем вопросы при монтировании компонента
   useEffect(() => {
@@ -24,6 +25,11 @@ const Test: React.FC = () => {
       setLoading(false);
     });
   }, []);
+
+  // Сбрасываем nextClicked при изменении выбора опции
+  useEffect(() => {
+    setNextClicked(false);
+  }, [selectedOption]);
 
   // Мемоизируем текущий вопрос для предотвращения лишних рендеров
   const question = useMemo(() => 
@@ -39,9 +45,12 @@ const Test: React.FC = () => {
     setSelectedOption(value);
   }, []);
 
-  // Обработчик перехода к следующему вопросу
+  // Обработчик перехода к следующему вопросу с предотвращением двойных нажатий
   const handleNext = useCallback(() => {
-    if (!selectedOption || !question) return;
+    // Если кнопка уже была нажата или нет выбранного варианта, не обрабатываем
+    if (nextClicked || !selectedOption || !question) return;
+    
+    setNextClicked(true);
 
     // Сохраняем текущий ответ
     const updatedAnswers = {
@@ -54,21 +63,26 @@ const Test: React.FC = () => {
       // Переходим к следующему вопросу
       setCurrentQuestion(prev => prev + 1);
       
-      // Очищаем выбранный вариант для следующего вопроса
-      // или устанавливаем сохраненный ранее ответ
-      const nextQuestion = questions[currentQuestion + 1];
-      if (nextQuestion) {
-        const nextQuestionId = nextQuestion.id;
-        const savedAnswer = updatedAnswers[nextQuestionId];
-        setSelectedOption(savedAnswer || null);
-      } else {
+      // Сбрасываем выбор для следующего вопроса, если это не вопрос 14
+      const nextQuestionIndex = currentQuestion + 1;
+      if (nextQuestionIndex === 14) {
+        // Для вопроса 14 явно сбрасываем выбор
         setSelectedOption(null);
+      } else {
+        // Для остальных проверяем наличие сохраненного ответа
+        const nextQuestion = questions[nextQuestionIndex];
+        if (nextQuestion) {
+          const nextQuestionId = nextQuestion.id;
+          setSelectedOption(updatedAnswers[nextQuestionId] || null);
+        } else {
+          setSelectedOption(null);
+        }
       }
     } else {
       // Тест завершен, переходим к результатам
       navigate("/results", { state: { answers: updatedAnswers } });
     }
-  }, [selectedOption, question, answers, isLastQuestion, questions, currentQuestion, navigate]);
+  }, [selectedOption, question, answers, isLastQuestion, questions, currentQuestion, navigate, nextClicked]);
 
   // Обработчик перехода к предыдущему вопросу
   const handlePrevious = useCallback(() => {
