@@ -15,9 +15,9 @@ const EmotionRecommendations: React.FC<EmotionRecommendationsProps> = ({ emotion
 
   return (
     <Card className="border-gray-200 shadow-md overflow-hidden mb-4">
-      <CardHeader className={`bg-${emotion.color}-50 border-b border-${emotion.color}-100`}>
+      <CardHeader className="bg-gray-50 border-b border-gray-100">
         <CardTitle className="flex items-center gap-2 text-xl">
-          <Icon name={emotion.icon} className={`h-5 w-5 text-${emotion.color}-600`} />
+          <Icon name={emotion.icon} className="h-5 w-5 text-gray-600" />
           <span>Рекомендации при {emotion.name.toLowerCase()}</span>
         </CardTitle>
       </CardHeader>
@@ -36,7 +36,7 @@ const EmotionRecommendations: React.FC<EmotionRecommendationsProps> = ({ emotion
               <ul className="space-y-2">
                 {emotion.recommendations.map((recommendation, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <Icon name="CheckCircle" className={`h-5 w-5 text-${emotion.color}-500 mt-0.5 shrink-0`} />
+                    <Icon name="CheckCircle" className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
                     <span className="text-gray-700">{recommendation}</span>
                   </li>
                 ))}
