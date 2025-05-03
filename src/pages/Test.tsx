@@ -5,7 +5,6 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import ProgressIndicator from "@/components/test/ProgressIndicator";
 import NavigationButtons from "@/components/test/NavigationButtons";
 import QuestionDisplay from "@/components/test/QuestionDisplay";
-import Header from "@/components/Header";
 import Icon from "@/components/ui/icon";
 import { Answers } from "@/types/test";
 
@@ -16,7 +15,6 @@ const Test: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [nextClicked, setNextClicked] = useState(false);
 
   // Загружаем вопросы при монтировании компонента
   useEffect(() => {
@@ -24,16 +22,8 @@ const Test: React.FC = () => {
     import("@/data/questions").then(({ questions }) => {
       setQuestions(questions);
       setLoading(false);
-    }).catch(error => {
-      console.error("Ошибка при загрузке вопросов:", error);
-      setLoading(false);
     });
   }, []);
-
-  // Сбрасываем nextClicked при изменении выбора опции
-  useEffect(() => {
-    setNextClicked(false);
-  }, [selectedOption]);
 
   // Мемоизируем текущий вопрос для предотвращения лишних рендеров
   const question = useMemo(() => 
@@ -49,12 +39,9 @@ const Test: React.FC = () => {
     setSelectedOption(value);
   }, []);
 
-  // Обработчик перехода к следующему вопросу с предотвращением двойных нажатий
+  // Обработчик перехода к следующему вопросу
   const handleNext = useCallback(() => {
-    // Если кнопка уже была нажата или нет выбранного варианта, не обрабатываем
-    if (nextClicked || !selectedOption || !question) return;
-    
-    setNextClicked(true);
+    if (!selectedOption || !question) return;
 
     // Сохраняем текущий ответ
     const updatedAnswers = {
@@ -67,17 +54,13 @@ const Test: React.FC = () => {
       // Переходим к следующему вопросу
       setCurrentQuestion(prev => prev + 1);
       
-      // Всегда сбрасываем выбор для следующего вопроса
-      const nextQuestionIndex = currentQuestion + 1;
-      if (nextQuestionIndex < questions.length) {
-        const nextQuestion = questions[nextQuestionIndex];
-        if (nextQuestion) {
-          const nextQuestionId = nextQuestion.id;
-          const savedAnswer = updatedAnswers[nextQuestionId];
-          setSelectedOption(savedAnswer || null);
-        } else {
-          setSelectedOption(null);
-        }
+      // Очищаем выбранный вариант для следующего вопроса
+      // или устанавливаем сохраненный ранее ответ
+      const nextQuestion = questions[currentQuestion + 1];
+      if (nextQuestion) {
+        const nextQuestionId = nextQuestion.id;
+        const savedAnswer = updatedAnswers[nextQuestionId];
+        setSelectedOption(savedAnswer || null);
       } else {
         setSelectedOption(null);
       }
@@ -85,7 +68,7 @@ const Test: React.FC = () => {
       // Тест завершен, переходим к результатам
       navigate("/results", { state: { answers: updatedAnswers } });
     }
-  }, [selectedOption, question, answers, isLastQuestion, questions, currentQuestion, navigate, nextClicked]);
+  }, [selectedOption, question, answers, isLastQuestion, questions, currentQuestion, navigate]);
 
   // Обработчик перехода к предыдущему вопросу
   const handlePrevious = useCallback(() => {
@@ -102,13 +85,10 @@ const Test: React.FC = () => {
       setCurrentQuestion(prev => prev - 1);
       
       // Восстанавливаем предыдущий ответ, если он есть
-      const prevQuestionIndex = currentQuestion - 1;
-      if (prevQuestionIndex >= 0 && prevQuestionIndex < questions.length) {
-        const prevQuestion = questions[prevQuestionIndex];
-        if (prevQuestion) {
-          const prevQuestionId = prevQuestion.id;
-          setSelectedOption(answers[prevQuestionId] || null);
-        }
+      const prevQuestion = questions[currentQuestion - 1];
+      if (prevQuestion) {
+        const prevQuestionId = prevQuestion.id;
+        setSelectedOption(answers[prevQuestionId] || null);
       }
     }
   }, [currentQuestion, questions, answers, selectedOption, question]);
@@ -126,45 +106,41 @@ const Test: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="flex-1 p-4">
-        <header className="w-full max-w-3xl mx-auto py-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
-            Психологический тест
-          </h1>
-        </header>
+    <div className="min-h-screen flex flex-col bg-gray-50 p-4">
+      <header className="w-full max-w-3xl mx-auto py-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
+          Психологический тест
+        </h1>
+      </header>
 
-        <main className="flex-1 w-full max-w-3xl mx-auto">
-          <Card className="border-purple-200 shadow-md">
-            <CardHeader>
-              <ProgressIndicator 
-                currentQuestion={currentQuestion} 
-                totalQuestions={questions.length} 
-              />
-            </CardHeader>
-            
-            <CardContent>
-              <QuestionDisplay 
-                question={question}
-                selectedOption={selectedOption}
-                onOptionSelect={handleOptionSelect}
-              />
-            </CardContent>
-            
-            <CardFooter>
-              <NavigationButtons 
-                onPrevious={handlePrevious}
-                onNext={handleNext}
-                isPreviousDisabled={currentQuestion === 0}
-                isNextDisabled={!selectedOption}
-                isLastQuestion={isLastQuestion}
-              />
-            </CardFooter>
-          </Card>
-        </main>
-      </div>
+      <main className="flex-1 w-full max-w-3xl mx-auto">
+        <Card className="border-purple-200 shadow-md">
+          <CardHeader>
+            <ProgressIndicator 
+              currentQuestion={currentQuestion} 
+              totalQuestions={questions.length} 
+            />
+          </CardHeader>
+          
+          <CardContent>
+            <QuestionDisplay 
+              question={question}
+              selectedOption={selectedOption}
+              onOptionSelect={handleOptionSelect}
+            />
+          </CardContent>
+          
+          <CardFooter>
+            <NavigationButtons 
+              onPrevious={handlePrevious}
+              onNext={handleNext}
+              isPreviousDisabled={currentQuestion === 0}
+              isNextDisabled={!selectedOption}
+              isLastQuestion={isLastQuestion}
+            />
+          </CardFooter>
+        </Card>
+      </main>
     </div>
   );
 };
