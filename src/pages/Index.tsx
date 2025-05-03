@@ -1,102 +1,148 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import Icon from "@/components/ui/icon";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import Icon from "@/components/ui/icon";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
-const Index = () => {
+const Index: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 p-4">
-      <header className="w-full max-w-4xl mx-auto py-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-center text-purple-800">
-          Психологический тест личности
-        </h1>
-      </header>
+    <div className="min-h-screen flex flex-col bg-purple-50">
+      {/* Шапка */}
+      <Header />
 
-      <main className="flex-1 w-full max-w-4xl mx-auto">
-        <Card className="border-purple-200 shadow-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-purple-700">
-              Узнайте свой психологический профиль
-            </CardTitle>
-            <CardDescription className="text-gray-600 text-lg">
-              Тест поможет определить ваш тип личности, темперамент, уровень уверенности, 
-              раздражительности и тревожности
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-6 items-center">
-              <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-100 rounded-full p-2 text-purple-600">
-                    <Icon name="Brain" size={24} />
-                  </div>
-                  <span className="font-medium">Тип личности</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 rounded-full p-2 text-blue-600">
-                    <Icon name="Flame" size={24} />
-                  </div>
-                  <span className="font-medium">Темперамент</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-100 rounded-full p-2 text-green-600">
-                    <Icon name="Medal" size={24} />
-                  </div>
-                  <span className="font-medium">Уверенность</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-red-100 rounded-full p-2 text-red-600">
-                    <Icon name="ZapOff" size={24} />
-                  </div>
-                  <span className="font-medium">Раздражительность</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-yellow-100 rounded-full p-2 text-yellow-600">
-                    <Icon name="AlertCircle" size={24} />
-                  </div>
-                  <span className="font-medium">Тревожность</span>
+      {/* Основная секция */}
+      <main className="flex-1">
+        {/* Герой секция */}
+        <section className="py-16 md:py-24 px-4">
+          <div className="container mx-auto max-w-5xl">
+            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+              <div className="md:w-1/2">
+                <h2 className="text-3xl md:text-4xl font-bold text-purple-900 mb-4">
+                  Узнайте больше о своей личности и эмоциях
+                </h2>
+                <p className="text-gray-700 mb-8">
+                  Пройдите наш тест, чтобы лучше понять себя, свой тип личности и эмоциональные характеристики. 
+                  Используйте дневник эмоций для отслеживания своего самочувствия и получения персонализированных рекомендаций.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    onClick={() => navigate("/test")}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2"
+                  >
+                    Пройти психологический тест
+                    <Icon name="ArrowRight" className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate("/diary")}
+                    className="border-purple-300 text-purple-700"
+                  >
+                    Открыть дневник эмоций
+                    <Icon name="Calendar" className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex-1">
+              <div className="md:w-1/2 flex justify-center">
                 <img 
-                  src="https://images.unsplash.com/photo-1596526131083-e8c633c948d2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
-                  alt="Психологический тест" 
-                  className="rounded-lg shadow-sm w-full h-auto max-h-64 object-cover"
+                  src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                  alt="Психология и самопознание" 
+                  className="rounded-lg shadow-xl max-w-full h-auto"
                 />
               </div>
             </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-              <p className="text-purple-800">
-                <strong>Этот тест поможет вам:</strong>
-              </p>
-              <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
-                <li>Лучше понять свои психологические особенности</li>
-                <li>Определить сильные стороны своей личности</li>
-                <li>Осознать области для личностного роста</li>
-                <li>Получить рекомендации по саморазвитию</li>
-              </ul>
+          </div>
+        </section>
+
+        {/* Секция с карточками возможностей */}
+        <section className="py-16 bg-white px-4">
+          <div className="container mx-auto max-w-5xl">
+            <h3 className="text-2xl font-bold text-center text-purple-800 mb-12">
+              Что вы получите
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-purple-50 rounded-lg p-6 shadow-md">
+                <div className="rounded-full bg-purple-100 p-3 inline-block mb-4">
+                  <Icon name="Brain" className="h-6 w-6 text-purple-600" />
+                </div>
+                <h4 className="text-lg font-semibold mb-2">Психологический портрет</h4>
+                <p className="text-gray-700">
+                  Узнайте свой тип личности MBTI и получите подробное описание ваших психологических характеристик.
+                </p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-6 shadow-md">
+                <div className="rounded-full bg-purple-100 p-3 inline-block mb-4">
+                  <Icon name="BarChart" className="h-6 w-6 text-purple-600" />
+                </div>
+                <h4 className="text-lg font-semibold mb-2">Анализ эмоциональных черт</h4>
+                <p className="text-gray-700">
+                  Получите подробный анализ вашего темперамента, общительности, тревожности и других ключевых характеристик.
+                </p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-6 shadow-md">
+                <div className="rounded-full bg-purple-100 p-3 inline-block mb-4">
+                  <Icon name="CalendarHeart" className="h-6 w-6 text-purple-600" />
+                </div>
+                <h4 className="text-lg font-semibold mb-2">Дневник эмоций</h4>
+                <p className="text-gray-700">
+                  Отслеживайте свое эмоциональное состояние день за днем и получайте персонализированные рекомендации.
+                </p>
+              </div>
             </div>
-          </CardContent>
-          <CardFooter className="flex justify-center pb-6">
-            <Button 
-              onClick={() => navigate("/test")} 
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 h-auto text-lg"
-            >
-              Начать тест
-              <Icon name="ArrowRight" size={20} />
-            </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </section>
+
+        {/* Секция личный кабинет */}
+        <section className="py-16 bg-purple-50 px-4">
+          <div className="container mx-auto max-w-5xl">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="md:w-1/2">
+                <img 
+                  src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                  alt="Личный кабинет" 
+                  className="rounded-lg shadow-xl max-w-full h-auto"
+                />
+              </div>
+              <div className="md:w-1/2">
+                <h3 className="text-2xl font-bold text-purple-800 mb-4">
+                  Личный кабинет
+                </h3>
+                <p className="text-gray-700 mb-6">
+                  Создайте личный кабинет, чтобы сохранять результаты тестов и вести дневник эмоций. 
+                  Отслеживайте свой прогресс и получайте доступ к своим данным с любого устройства.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <Icon name="CheckSquare" className="h-5 w-5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+                    <span>Сохранение всех результатов тестов</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Icon name="CheckSquare" className="h-5 w-5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+                    <span>Отслеживание прогресса и изменений со временем</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Icon name="CheckSquare" className="h-5 w-5 text-purple-600 mt-0.5 mr-2 shrink-0" />
+                    <span>Ведение дневника эмоций с синхронизацией</span>
+                  </li>
+                </ul>
+                <Button 
+                  onClick={() => navigate("/login")}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Icon name="UserPlus" className="mr-2 h-4 w-4" />
+                  Создать аккаунт
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
-      <footer className="w-full max-w-4xl mx-auto py-6 text-center text-gray-500 text-sm">
-        © 2025 Психологический тест личности
-      </footer>
+      {/* Подвал */}
+      <Footer />
     </div>
   );
 };

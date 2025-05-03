@@ -1,8 +1,8 @@
 
-import { Question } from "@/types/test";
+import { TestResults } from "@/types/test";
 
 // Категории в соответствии с MBTI
-export const getMbtiTypeFromResults = (scores: Record<string, number>): string => {
+export const getMbtiTypeFromResults = (scores: TestResults): string => {
   // Определяем каждую дихотомию на основе полученных баллов
   // E vs I: Экстраверсия против Интроверсии (personality)
   const e_i = scores.personality > 60 ? 'E' : 'I';
